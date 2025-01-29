@@ -14,14 +14,6 @@ stages:
     - checkout: self
       persistCredentials: true  # Ensures Git authentication works
 
-    # List files in the repository to check for experience.txt
-    - script: |
-        # Debugging: Print current directory and list all files
-        echo "Current directory: $(pwd)"
-        echo "Listing files in the repository:"
-        ls -la $(Build.SourcesDirectory)
-      displayName: "List Repository Files"
-
     - script: |
         #!/bin/bash
 
@@ -56,7 +48,7 @@ stages:
         fi
         new_value=$((char_31 + 1))
 
-        # Replace the 31st character in the first line
+        # Modify the file content
         updated_line="${first_line:0:30}$new_value${first_line:31}"
 
         # Update the file with the modified content
