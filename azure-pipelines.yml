@@ -22,12 +22,16 @@ stages:
 
         # Debugging: Print file path
         echo "Checking file: $filePath"
+        echo "Build.SourcesDirectory: $Build.SourcesDirectory"
 
         # Ensure the file exists
         if [ ! -f "$filePath" ]; then
           echo "Error: File '$filePath' not found."
           exit 1
         fi
+
+        # Check file permissions
+        ls -l "$filePath"
 
         # Read the first line of the file
         first_line=$(head -n 1 "$filePath")
