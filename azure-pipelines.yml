@@ -27,7 +27,7 @@ stages:
         # Create the file if it does not exist
         if [ ! -f "$filePath" ]; then
           echo "Creating experience.txt..."
-          echo "Experience Level: 1" > "$filePath"
+          echo "Experience Level: 1000000000000000000000000000000" > "$filePath"
         fi
 
         echo "Checking file: $filePath"
