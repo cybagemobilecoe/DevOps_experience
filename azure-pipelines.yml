@@ -18,7 +18,7 @@ stages:
     - script: |
         filePath="$BUILD_SOURCESDIRECTORY/experience.txt"
 
-        # Create the file if it does not exist
+        # Create file if it does not exist
         if [ ! -f "$filePath" ]; then
           echo "Creating experience.txt..."
           echo "Need Sr. DevOps Engineer with 4+ years of experience of Jenkins, GitHub Actions, AWS services - S3, EC2, RDS, IAM Identity Center, Route 53, CloudWatch, Lambda, SES, ElastiCache, Data Transfer, VPC, ELB, Global Accelerator, KMS, WAF, Kinesis, Config, CloudFront" > "$filePath"
@@ -26,20 +26,30 @@ stages:
 
         echo "Checking file: $filePath"
 
-        # Read the file content
-        content=$(cat "$filePath")
+        # Debug: Print file content
+        echo "Current file content:"
+        cat "$filePath"
 
-        # Extract experience number using regex (matches '4+', '5+', etc.)
-        if [[ "$content" =~ ([0-9]+)\+ ]]; then
-          exp_years=${BASH_REMATCH[1]}  # Capture the number
-          new_exp=$((exp_years + 1))    # Increment it
-          updated_content=$(echo "$content" | sed -E "s/${exp_years}\+/${new_exp}+/")  # Replace in file
-          echo "$updated_content" > "$filePath"  # Save changes
-          echo "Updated experience to ${new_exp}+ years."
-        else
+        # Extract experience number using regex (ensuring no extra spaces)
+        exp_years=$(grep -oE '[0-9]+\+' "$filePath" | head -1 | tr -d '+')
+
+        # Debug: Show extracted value
+        echo "Extracted experience: $exp_years"
+
+        if [[ -z "$exp_years" ]]; then
           echo "Error: Could not find experience format (e.g., '4+') in file."
           exit 1
         fi
+
+        # Increment the experience number
+        new_exp=$((exp_years + 1))
+
+        # Replace in file (ensuring correct format)
+        sed -i "s/${exp_years}\+/${new_exp}+/g" "$filePath"
+
+        # Show updated file content
+        echo "Updated experience to ${new_exp}+ years."
+        cat "$filePath"
       displayName: "Process Experience File"
 
     - script: |
