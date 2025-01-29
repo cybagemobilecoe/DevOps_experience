@@ -14,12 +14,12 @@ stages:
     - checkout: self
       persistCredentials: true  # Ensures Git authentication works
 
+    # List files in the repository to check for experience.txt
     - script: |
-        # Debugging: List files in the repository and print current directory
+        # Debugging: Print current directory and list all files
         echo "Current directory: $(pwd)"
         echo "Listing files in the repository:"
         ls -la $(Build.SourcesDirectory)
-
       displayName: "List Repository Files"
 
     - script: |
@@ -67,19 +67,22 @@ stages:
       displayName: "Process File"
 
     - script: |
+        # Debugging: Check current Git status
+        git status
+
         # Set Git config
         git config --global user.name "Azure DevOps"
         git config --global user.email "cybage.mobile.coe@gmail.com"
 
-        # Check if there are any changes to commit
-        git diff --exit-code || echo "Changes detected, proceeding to commit..."
-
-        # Checkout the main branch
+        # Checkout the main branch or create it if it doesn't exist
         git checkout main || git checkout -b main
+
+        # Debugging: Show current branch and changes
+        git branch
+        git diff
 
         # Add, commit, and push changes
         git add experience.txt
-        git commit -m "Updated 31st character in experience.txt" || echo "No changes to commit"
+        git commit -m "Updated experience level in experience.txt" || echo "No changes to commit"
         git push origin main || echo "Push failed"
-
       displayName: "Commit and Push Changes"
