@@ -6,51 +6,60 @@ pool:
 
 stages:
 - stage: UpdateFile
-  displayName: "Update Experience in Repo"
+  displayName: "Update File in Repo"
   jobs:
-  - job: UpdateExperience
-    displayName: "Increment Experience in experience.txt"
+  - job: UpdateChar
+    displayName: "Update 31st Character in experience.txt"
     steps:
     - checkout: self
       persistCredentials: true
       fetchDepth: 0  # Ensures full checkout
 
     - script: |
+        echo "Build sources directory: $BUILD_SOURCESDIRECTORY"
+        echo "Listing files in workspace:"
+        ls -la "$BUILD_SOURCESDIRECTORY"
+      displayName: "Debug File Path"
+
+    - script: |
         filePath="$BUILD_SOURCESDIRECTORY/experience.txt"
 
-        # Create file if it does not exist
+        # Create the file if it does not exist
         if [ ! -f "$filePath" ]; then
           echo "Creating experience.txt..."
-          echo "Need Sr. DevOps Engineer with 4+ years of experience of Jenkins, GitHub Actions, AWS services - S3, EC2, RDS, IAM Identity Center, Route 53, CloudWatch, Lambda, SES, ElastiCache, Data Transfer, VPC, ELB, Global Accelerator, KMS, WAF, Kinesis, Config, CloudFront" > "$filePath"
+          echo "Experience Level: 1000000000000000000000000000000" > "$filePath"
         fi
 
         echo "Checking file: $filePath"
 
-        # Debug: Print file content
-        echo "Current file content:"
-        cat "$filePath"
+        # Read the first line of the file
+        first_line=$(head -n 1 "$filePath")
 
-        # Extract experience number using regex (ensuring no extra spaces)
-        exp_years=$(grep -oE '[0-9]+\+' "$filePath" | head -1 | tr -d '+')
-
-        # Debug: Show extracted value
-        echo "Extracted experience: $exp_years"
-
-        if [[ -z "$exp_years" ]]; then
-          echo "Error: Could not find experience format (e.g., '4+') in file."
+        # Ensure the line has at least 31 characters
+        if [ ${#first_line} -lt 31 ]; then
+          echo "Error: First line of the file has less than 31 characters."
           exit 1
         fi
 
-        # Increment the experience number
-        new_exp=$((exp_years + 1))
+        # Extract the 31st character (index 30)
+        char_31=${first_line:30:1}
 
-        # Replace in file (ensuring correct format)
-        sed -i "s/${exp_years}\+/${new_exp}+/g" "$filePath"
+        # Convert to number and increment
+        if ! [[ $char_31 =~ ^[0-9]+$ ]]; then
+          echo "Error: The 31st character is not a valid number."
+          exit 1
+        fi
+        new_value=$((char_31 + 1))
 
-        # Show updated file content
-        echo "Updated experience to ${new_exp}+ years."
-        cat "$filePath"
-      displayName: "Process Experience File"
+        # Modify the file content
+        updated_line="${first_line:0:30}$new_value${first_line:31}"
+
+        # Update the file with the modified content
+        { echo "$updated_line"; tail -n +2 "$filePath"; } > "$filePath.tmp" && mv "$filePath.tmp" "$filePath"
+
+        # Display updated content
+        echo "Updated file content:" && cat "$filePath"
+      displayName: "Process File"
 
     - script: |
         git status
