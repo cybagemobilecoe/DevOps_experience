@@ -1,0 +1,6 @@
+Need Sr. DevOps Engineer with 4+ years of experience of Jenkins, GitHub Actions, AWS services - S3, EC2, RDS, IAM Identity Center, Route 53, CloudWatch, Lambda, SES, ElastiCache, Data Transfer, VPC, ELB, Global Accelerator, KMS, WAF, Kinesis, Config, CloudFront
+Strong communication skills
+Ability to work effectively in a collaborative, client-facing role.
+Excellent problem-solving and analytical skills.
+Familiarity with agile development methodologies.
+Independent contributor
