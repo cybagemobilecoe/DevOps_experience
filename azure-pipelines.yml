@@ -15,7 +15,8 @@ stages:
       persistCredentials: true  # Ensures Git authentication works
 
     - script: |
-        # Debugging: List files in the directory to verify experience.txt exists
+        # Debugging: List files in the repository and print current directory
+        echo "Current directory: $(pwd)"
         echo "Listing files in the repository:"
         ls -la $(Build.SourcesDirectory)
 
