@@ -12,22 +12,25 @@ stages:
     displayName: "Update 31st Character in experience.txt"
     steps:
     - checkout: self
-      persistCredentials: true  # Ensures Git authentication works
+      persistCredentials: true
+      fetchDepth: 0  # Ensures full checkout
 
     - script: |
-        #!/bin/bash
+        echo "Build sources directory: $BUILD_SOURCESDIRECTORY"
+        echo "Listing files in workspace:"
+        ls -la "$BUILD_SOURCESDIRECTORY"
+      displayName: "Debug File Path"
 
-        # Define the absolute file path
+    - script: |
         filePath="$BUILD_SOURCESDIRECTORY/experience.txt"
 
-        # Debugging: Print file path
-        echo "Checking file: $filePath"
-
-        # Ensure the file exists
+        # Create the file if it does not exist
         if [ ! -f "$filePath" ]; then
-          echo "Error: File '$filePath' not found."
-          exit 1
+          echo "Creating experience.txt..."
+          echo "Experience Level: 1" > "$filePath"
         fi
+
+        echo "Checking file: $filePath"
 
         # Read the first line of the file
         first_line=$(head -n 1 "$filePath")
@@ -59,21 +62,14 @@ stages:
       displayName: "Process File"
 
     - script: |
-        # Debugging: Check current Git status
         git status
-
-        # Set Git config
         git config --global user.name "Azure DevOps"
         git config --global user.email "cybage.mobile.coe@gmail.com"
 
-        # Checkout the main branch
         git checkout main || git checkout -b main
-
-        # Debugging: Show current branch and changes
         git branch
         git diff
 
-        # Add, commit, and push changes
         git add experience.txt
         git commit -m "Updated experience level in experience.txt" || echo "No changes to commit"
         git push origin main || echo "Push failed"
