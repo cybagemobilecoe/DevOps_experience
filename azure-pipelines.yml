@@ -18,20 +18,16 @@ stages:
         #!/bin/bash
 
         # Define the absolute file path
-        filePath="$(Build.SourcesDirectory)/experience.txt"
+        filePath="$BUILD_SOURCESDIRECTORY/experience.txt"
 
         # Debugging: Print file path
         echo "Checking file: $filePath"
-        echo "Build.SourcesDirectory: $Build.SourcesDirectory"
 
         # Ensure the file exists
         if [ ! -f "$filePath" ]; then
           echo "Error: File '$filePath' not found."
           exit 1
         fi
-
-        # Check file permissions
-        ls -l "$filePath"
 
         # Read the first line of the file
         first_line=$(head -n 1 "$filePath")
@@ -70,7 +66,7 @@ stages:
         git config --global user.name "Azure DevOps"
         git config --global user.email "cybage.mobile.coe@gmail.com"
 
-        # Checkout the main branch or create it if it doesn't exist
+        # Checkout the main branch
         git checkout main || git checkout -b main
 
         # Debugging: Show current branch and changes
