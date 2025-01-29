@@ -14,6 +14,12 @@ stages:
     - checkout: self
       persistCredentials: true  # Ensures Git authentication works
 
+    # Debugging step: List full directory structure
+    - script: |
+        echo "Listing full directory structure"
+        ls -R /home/vsts/work/1/s/
+      displayName: "List Full Directory Structure"
+
     - script: |
         #!/bin/bash
 
@@ -48,7 +54,7 @@ stages:
         fi
         new_value=$((char_31 + 1))
 
-        # Modify the file content
+        # Replace the 31st character in the first line
         updated_line="${first_line:0:30}$new_value${first_line:31}"
 
         # Update the file with the modified content
@@ -59,22 +65,18 @@ stages:
       displayName: "Process File"
 
     - script: |
-        # Debugging: Check current Git status
-        git status
-
         # Set Git config
         git config --global user.name "Azure DevOps"
         git config --global user.email "cybage.mobile.coe@gmail.com"
 
-        # Checkout the main branch or create it if it doesn't exist
-        git checkout main || git checkout -b main
+        # Check if there are any changes to commit
+        git diff --exit-code || echo "Changes detected, proceeding to commit..."
 
-        # Debugging: Show current branch and changes
-        git branch
-        git diff
+        # Checkout the main branch
+        git checkout main || git checkout -b main
 
         # Add, commit, and push changes
         git add experience.txt
-        git commit -m "Updated experience level in experience.txt" || echo "No changes to commit"
+        git commit -m "Updated 31st character in experience.txt" || echo "No changes to commit"
         git push origin main || echo "Push failed"
       displayName: "Commit and Push Changes"
