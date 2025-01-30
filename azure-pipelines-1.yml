@@ -28,9 +28,11 @@ steps:
       # Update the file
       echo "${NEW_VERSION}+" > "$VERSION_FILE"
 
-      # Configure Git
+      # Configure Git with GitHub credentials using the stored PAT
       git config --global user.email "your-email@example.com"
       git config --global user.name "Azure DevOps Pipeline"
+      git config --global credential.helper store
+      echo "https://$GITHUB_TOKEN@github.com" > ~/.git-credentials
 
       # Ensure we're on the correct branch (e.g., main or master)
       git checkout $(git rev-parse --abbrev-ref HEAD) || git checkout -b main
