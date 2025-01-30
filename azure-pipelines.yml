@@ -13,7 +13,7 @@ stages:
     steps:
     - checkout: self
       persistCredentials: true
-      fetchDepth: 0  # Ensures full checkout
+      fetchDepth: 0
 
     - script: |
         filePath="$BUILD_SOURCESDIRECTORY/experience.txt"
