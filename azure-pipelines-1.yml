@@ -31,15 +31,15 @@ steps:
       # Configure Git with GitHub credentials using the stored PAT
       git config --global user.email "your-email@example.com"
       git config --global user.name "Azure DevOps Pipeline"
-      git config --global credential.helper store
-      echo "https://$GITHUB_TOKEN@github.com" > ~/.git-credentials
 
       # Ensure we're on the correct branch (e.g., main or master)
       git checkout $(git rev-parse --abbrev-ref HEAD) || git checkout -b main
 
-      # Commit and push changes
+      # Commit and push changes using the Personal Access Token (PAT)
       git add "$VERSION_FILE"
       git commit -m "Increment version to ${NEW_VERSION}+"
-      git push origin HEAD:main  # Ensure the correct branch is targeted
+      
+      # Using the PAT for authentication during push
+      git push https://$GITHUB_TOKEN@github.com/cybagemobilecoe/DevOps_experience.git HEAD:main
     displayName: 'Increment Version in Text File'
     failOnStderr: true  # Fail the task if there's an error in the script
