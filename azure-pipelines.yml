@@ -73,7 +73,15 @@ stages:
         # Ensure we are on the correct branch and update it
         git fetch origin
         git checkout main
-        git pull origin main --rebase  # Pull latest changes before committing
+
+        # Stash local changes before pulling
+        git stash push -m "Temporary stash before pull"
+
+        # Pull latest changes
+        git pull origin main --rebase || (echo "Error: Git pull failed!" && exit 1)
+
+        # Apply stashed changes
+        git stash pop || echo "No stash to apply"
 
         # Debugging: Show current branch and changes
         git branch
