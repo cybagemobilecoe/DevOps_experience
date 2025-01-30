@@ -13,6 +13,11 @@ steps:
       # Define file path
       VERSION_FILE="version.txt"
 
+      # Check if version.txt exists, create it with 4+ if not
+      if [ ! -f "$VERSION_FILE" ]; then
+        echo "4+" > "$VERSION_FILE"
+      fi
+
       # Read version from file
       VERSION=$(cat "$VERSION_FILE")
 
@@ -24,12 +29,15 @@ steps:
       echo "${NEW_VERSION}+" > "$VERSION_FILE"
 
       # Configure Git
-      git config --global user.email "cybage.mobile.coe@gmail.com"
+      git config --global user.email "your-email@example.com"
       git config --global user.name "Azure DevOps Pipeline"
+
+      # Ensure we're on the correct branch (e.g., main or master)
+      git checkout $(git rev-parse --abbrev-ref HEAD) || git checkout -b main
 
       # Commit and push changes
       git add "$VERSION_FILE"
       git commit -m "Increment version to ${NEW_VERSION}+"
-      git push origin main
+      git push origin HEAD:main  # Ensure the correct branch is targeted
     displayName: 'Increment Version in Text File'
     failOnStderr: true  # Fail the task if there's an error in the script
