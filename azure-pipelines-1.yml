@@ -2,18 +2,19 @@ trigger:
   - main  # Runs the pipeline when changes are pushed to the 'main' branch
 
 pool:
-  vmImage: 'ubuntu-latest'  # Using Ubuntu as the build agent
+  vmImage: 'ubuntu-latest'  # Use an Ubuntu agent
 
 steps:
-  - checkout: self  # Pull the latest code from the repository
+  - checkout: self  # Pulls the latest code from the repo
 
   - script: |
       #!/bin/bash
+      set -e  # Exit immediately if a command fails
 
       # Define file path
       VERSION_FILE="version.txt"
 
-      # Check if version.txt exists, create it with 4+ if not
+      # Ensure the version file exists
       if [ ! -f "$VERSION_FILE" ]; then
         echo "4+" > "$VERSION_FILE"
       fi
@@ -28,20 +29,19 @@ steps:
       # Update the file
       echo "${NEW_VERSION}+" > "$VERSION_FILE"
 
-      # Configure Git with GitHub credentials
+      # Configure Git
       git config --global user.email "your-email@example.com"
       git config --global user.name "Azure DevOps Pipeline"
 
-      # Ensure we're on the correct branch (e.g., main or master)
+      # Ensure we are on the correct branch
       git checkout main || git checkout -b main
 
-      # Commit changes
+      # Add, commit, and push changes using the GitHub PAT
       git add "$VERSION_FILE"
       git commit -m "Increment version to ${NEW_VERSION}+"
 
-      # Push changes using the PAT stored in Azure DevOps secrets
+      # Use GitHub PAT for authentication
       git push https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git main
     displayName: 'Increment Version in Text File'
-    failOnStderr: true  # Fail the task if there's an error in the script
     env:
-      GITHUB_PAT: $(GITHUB_PAT)  # Reference the PAT stored in Azure DevOps secrets
+      GITHUB_PAT: $(GITHUB_PAT)  # Map the Azure DevOps secret variable
