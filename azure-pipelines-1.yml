@@ -4,67 +4,74 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  filePath: 'experience.txt'  # Ensure the correct relative path to the file
-
 stages:
 - stage: UpdateFile
   displayName: "Update File in Repo"
-
   jobs:
   - job: UpdateChar
-    displayName: "Update 30th Character in File"
-
+    displayName: "Update Experience Level in experience.txt"
     steps:
     - checkout: self
-
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.x'
-        addToPath: true
+      persistCredentials: true  # Ensures Git authentication works
 
     - script: |
         #!/bin/bash
+        set -e  # Exit on error
 
-        # Define the file path from the variable
-        FILE_PATH="${{ variables.filePath }}"  # Use the correct file path from variables
+        # Fetch the latest changes from the repository
+        git fetch origin
 
-        # Check if file exists
-        if [ ! -f "$FILE_PATH" ]; then
-          echo "Error: File '$FILE_PATH' not found."
+        # Ensure we're on the main branch and pull latest changes
+        git checkout main || git checkout -b main
+        git pull origin main
+
+        # Define the absolute file path for experience.txt
+        filePath="$(Build.SourcesDirectory)/experience.txt"
+        echo "Checking file: $filePath"
+
+        # Ensure the file exists
+        if [ ! -f "$filePath" ]; then
+          echo "Error: File '$filePath' not found."
           exit 1
         fi
 
-        # Read the first line of the file
-        first_line=$(head -n 1 "$FILE_PATH")
+        # Read the content of the file
+        file_content=$(cat "$filePath")
 
-        # Ensure the line has at least 30 characters
-        if [ ${#first_line} -lt 30 ]; then
-          echo "Error: First line of the file has less than 30 characters."
-          exit 1
+        # Replace the experience levels (4+ -> 5+, 5+ -> 6+)
+        updated_content=$(echo "$file_content" | sed -E 's/(4\+)( years)/5\+\2/g' | sed -E 's/(5\+)( years)/6\+\2/g')
+
+        # If there are no changes, exit
+        if [ "$file_content" == "$updated_content" ]; then
+          echo "No experience level to update"
+          exit 0
         fi
 
-        # Extract the 30th character
-        char_30=${first_line:30:1}
-        echo "value of char 30 ${char_30}" 
-        print(f"Type of char: {type(char_30)}")
+        # Update the file with the modified content
+        echo "$updated_content" > "$filePath"
 
-        # Convert the character to a number
-        if ! [[ $char_30 =~ ^[0-9]+$ ]]; then
-          echo "Error: The 30th character is not a valid number."
-          exit 1
-        fi
+        # Display updated content for confirmation
+        echo "Updated file content:"
+        cat "$filePath"
+      displayName: "Process File"
 
-        new_value=$((char_30 + 1))
+    - script: |
+        #!/bin/bash
+        set -e  # Exit on error
 
-        # Replace the 30th character in the first line
-        updated_line=$(echo "$first_line" | sed "s/./$new_value/31")
+        # Check current Git status
+        git status
 
-        # Output the updated content
-        echo "=== Original File Content ==="
-        cat "$FILE_PATH"
-        echo ""
-        echo "=== Updated File Content ==="
-        echo "$updated_line"
-      displayName: "Process and Display File Changes"
+        # Set Git config (if not already configured)
+        git config --global user.name "Azure DevOps"
+        git config --global user.email "cybage.mobile.coe@gmail.com"
 
+        # Ensure we're on the correct branch (main) and push changes
+        git checkout main || git checkout -b main
+        git pull origin main
+
+        # Commit and push the changes
+        git add experience.txt
+        git commit -m "Updated experience level in experience.txt" || echo "No changes to commit"
+        git push origin main || echo "Push failed, check permissions"
+      displayName: "Commit and Push Changes"
