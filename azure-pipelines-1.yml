@@ -41,7 +41,7 @@ steps:
       git commit -m "Increment version to ${NEW_VERSION}+"
 
       # Use GitHub PAT for authentication
-      git push https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git main
+      git push https://$(GITHUB_PAT)@https://github.com/cybagemobilecoe/DevOps_experience/cybagemobilecoe/DevOps_experience.git main
     displayName: 'Increment Version in Text File'
     env:
       GITHUB_PAT: $(GITHUB_PAT)  # Map the Azure DevOps secret variable
