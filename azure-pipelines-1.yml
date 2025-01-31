@@ -1,88 +1,80 @@
-# Azure DevOps Pipeline YAML
 trigger:
-- main  # Trigger pipeline on changes to the main branch
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
 
 stages:
-- stage: Build
-  displayName: 'Build Stage'
+- stage: UpdateFile
+  displayName: "Update File in Repo"
   jobs:
-  - job: BuildJob
-    displayName: 'Build Job'
-    pool:
-      vmImage: 'ubuntu-latest'  # Use Ubuntu agent
+  - job: UpdateChar
+    displayName: "Update 31st Character in experience.txt"
     steps:
-    - task: UsePythonVersion@0  # Example: Use Python for the build
-      inputs:
-        versionSpec: '3.x'
+    - checkout: self
+      persistCredentials: true  # Ensures Git authentication works
+
     - script: |
-        echo "Building the application..."
-        python -m pip install -r requirements.txt
-        python setup.py build
-      displayName: 'Build Application'
-    - task: PublishBuildArtifacts@1  # Publish build artifacts
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
+        #!/bin/bash
+        set -e  # Exit on error
 
-- stage: Test
-  displayName: 'Test Stage'
-  dependsOn: Build  # Run after Build stage
-  jobs:
-  - job: TestJob
-    displayName: 'Test Job'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
+        # Define the absolute file path
+        filePath="$(Build.SourcesDirectory)/experience.txt"
+        echo "Checking file: $filePath"
+
+        # Ensure the file exists
+        if [ ! -f "$filePath" ]; then
+          echo "Error: File '$filePath' not found."
+          exit 1
+        fi
+
+        # Read the first line of the file
+        first_line=$(head -n 1 "$filePath")
+
+        # Ensure the line has at least 31 characters
+        if [ ${#first_line} -lt 31 ]; then
+          echo "Error: First line of the file has less than 31 characters."
+          exit 1
+        fi
+
+        # Extract the 31st character (index 30)
+        char_31=${first_line:30:1}
+
+        # Convert to number and increment
+        if ! [[ $char_31 =~ ^[0-9]+$ ]]; then
+          echo "Error: The 31st character is not a valid number."
+          exit 1
+        fi
+        new_value=$((char_31 + 1))
+
+        # Modify the file content
+        updated_line="${first_line:0:30}$new_value${first_line:31}"
+        { echo "$updated_line"; tail -n +2 "$filePath"; } > "$filePath.tmp" && mv "$filePath.tmp" "$filePath"
+
+        # Display updated content
+        echo "Updated file content:" && cat "$filePath"
+      displayName: "Process File"
+
     - script: |
-        echo "Running tests..."
-        python -m pytest tests/  # Example: Run tests using pytest
-      displayName: 'Run Tests'
+        #!/bin/bash
+        set -e  # Exit on error
 
-- stage: DeployToStaging
-  displayName: 'Deploy to Staging'
-  dependsOn: Test  # Run after Test stage
-  jobs:
-  - job: DeployToStagingJob
-    displayName: 'Deploy to Staging Job'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: AzureCLI@2  # Example: Deploy to Azure App Service
-      inputs:
-        azureSubscription: 'Azure_Service_Connection'  # Azure service connection
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          echo "Deploying to Azure App Service Staging..."
-          az webapp deployment source config-zip \
-            --resource-group MyResourceGroup \
-            --name MyAppServiceName \
-            --src $(Build.ArtifactStagingDirectory)/drop/app.zip
-      displayName: 'Deploy to Azure App Service Staging'
+        # Debugging: Check current Git status
+        git status
 
-- stage: ApproveAndDeployToProd
-  displayName: 'Approve and Deploy to Production'
-  dependsOn: DeployToStaging  # Run after DeployToStaging stage
-  jobs:
-  - job: ApproveJob
-    displayName: 'Approval Job'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: ManualValidation@0  # Manual approval step
-      inputs:
-        notifyUsers: 'admin@example.com'  # Notify users for approval
-        instructions: 'Please approve the deployment to production.'
-    - task: AzureCLI@2  # Example: Deploy to Azure App Service Production
-      inputs:
-        azureSubscription: 'Azure_Service_Connection'  # Azure service connection
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          echo "Deploying to Azure App Service Production..."
-          az webapp deployment source config-zip \
-            --resource-group MyResourceGroup \
-            --name MyAppServiceName-Prod \
-            --src $(Build.ArtifactStagingDirectory)/drop/app.zip
-      displayName: 'Deploy to Azure App Service Production'
+        # Set Git config
+        git config --global user.name "Azure DevOps"
+        git config --global user.email "cybage.mobile.coe@gmail.com"
+
+        # Ensure we are on the main branch
+        git checkout main || git checkout -b main
+
+        # Debugging: Show current branch and changes
+        git branch
+        git diff
+
+        # Add, commit, and push changes
+        git add experience.txt
+        git commit -m "Updated experience level in experience.txt" || true
+        git push origin main || echo "Push failed, check permissions"
+      displayName: "Commit and Push Changes"
