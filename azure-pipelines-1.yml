@@ -9,7 +9,7 @@ steps:
 
   - script: |
       #!/bin/bash
-      set -e  # Exit immediately if a command fails
+      set -e  # Exit on error
 
       # Define file path
       VERSION_FILE="version.txt"
@@ -34,6 +34,7 @@ steps:
       git config --global user.name "Azure DevOps Pipeline"
 
       # Ensure we are on the correct branch
+      git branch
       git checkout main || git checkout -b main
 
       # Add, commit, and push changes using the GitHub PAT
@@ -41,7 +42,8 @@ steps:
       git commit -m "Increment version to ${NEW_VERSION}+"
 
       # Use GitHub PAT for authentication
-      git push https://$(GITHUB_PAT)@https://github.com/cybagemobilecoe/DevOps_experience/cybagemobilecoe/DevOps_experience.git main
+      git remote set-url origin https://$GITHUB_PAT@github.com/cybagemobilecoe/DevOps_experience.git
+      git push origin main
     displayName: 'Increment Version in Text File'
     env:
-      GITHUB_PAT: $(GITHUB_PAT)  # Map the Azure DevOps secret variable
+      GITHUB_PAT: $(GITHUB_PAT)  # Pass the secret token correctly
