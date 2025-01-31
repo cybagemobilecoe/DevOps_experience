@@ -6,9 +6,9 @@ pool:
 
 stages:
 - stage: UpdateFile
-  displayName: "Update File in Repo"
+  displayName: "Update Experience Level in experience.txt"
   jobs:
-  - job: UpdateChar
+  - job: UpdateExperience
     displayName: "Update Experience Level in experience.txt"
     steps:
     - checkout: self
@@ -35,7 +35,7 @@ stages:
         echo "Original content:"
         echo "$content"
 
-        # Replace any occurrence of '4+', '5+', etc., with the incremented value
+        # Use sed to find and replace experience level (e.g., '4+' -> '5+', '5+' -> '6+')
         updated_content=$(echo "$content" | sed -E 's/([0-9]+)\+/echo $((${BASH_REMATCH[1]}+1))+/ge')
 
         # If there was any change, update the file
