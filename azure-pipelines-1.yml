@@ -35,7 +35,7 @@ stages:
         echo "Original content:"
         echo "$content"
 
-        # Use a regular expression to find and increment experience levels
+        # Replace any occurrence of '4+', '5+', etc., with the incremented value
         updated_content=$(echo "$content" | sed -E 's/([0-9]+)\+/echo $((${BASH_REMATCH[1]}+1))+/ge')
 
         # If there was any change, update the file
