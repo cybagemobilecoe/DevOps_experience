@@ -1,24 +1,88 @@
+# Azure DevOps Pipeline YAML
 trigger:
-  - main  # Runs when changes are pushed to the main branch
+- main  # Trigger pipeline on changes to the main branch
 
-pool:
-  vmImage: 'ubuntu-latest'
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Job'
+    pool:
+      vmImage: 'ubuntu-latest'  # Use Ubuntu agent
+    steps:
+    - task: UsePythonVersion@0  # Example: Use Python for the build
+      inputs:
+        versionSpec: '3.x'
+    - script: |
+        echo "Building the application..."
+        python -m pip install -r requirements.txt
+        python setup.py build
+      displayName: 'Build Application'
+    - task: PublishBuildArtifacts@1  # Publish build artifacts
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
 
-steps:
-  - checkout: self  # Ensures the repo is checked out
+- stage: Test
+  displayName: 'Test Stage'
+  dependsOn: Build  # Run after Build stage
+  jobs:
+  - job: TestJob
+    displayName: 'Test Job'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        echo "Running tests..."
+        python -m pytest tests/  # Example: Run tests using pytest
+      displayName: 'Run Tests'
 
-  - script: |
-      #!/bin/bash
-      set -e  # Exit on error
+- stage: DeployToStaging
+  displayName: 'Deploy to Staging'
+  dependsOn: Test  # Run after Test stage
+  jobs:
+  - job: DeployToStagingJob
+    displayName: 'Deploy to Staging Job'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureCLI@2  # Example: Deploy to Azure App Service
+      inputs:
+        azureSubscription: 'Azure_Service_Connection'  # Azure service connection
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Deploying to Azure App Service Staging..."
+          az webapp deployment source config-zip \
+            --resource-group MyResourceGroup \
+            --name MyAppServiceName \
+            --src $(Build.ArtifactStagingDirectory)/drop/app.zip
+      displayName: 'Deploy to Azure App Service Staging'
 
-      VERSION_FILE="version.txt"
-
-      # Ensure the file exists
-      if [ ! -f "$VERSION_FILE" ]; then
-        echo "4+" > "$VERSION_FILE"
-      fi
-
-      # Read and increment version
-      VERSION=$(cat "$VERSION_FILE")
-      NUMERIC_VERSION=$(echo "$VERSION" | grep -o '[0-9]\+')
-      NEW_VERSION=$((NUMERIC_VERSION + 1))
+- stage: ApproveAndDeployToProd
+  displayName: 'Approve and Deploy to Production'
+  dependsOn: DeployToStaging  # Run after DeployToStaging stage
+  jobs:
+  - job: ApproveJob
+    displayName: 'Approval Job'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: ManualValidation@0  # Manual approval step
+      inputs:
+        notifyUsers: 'admin@example.com'  # Notify users for approval
+        instructions: 'Please approve the deployment to production.'
+    - task: AzureCLI@2  # Example: Deploy to Azure App Service Production
+      inputs:
+        azureSubscription: 'Azure_Service_Connection'  # Azure service connection
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Deploying to Azure App Service Production..."
+          az webapp deployment source config-zip \
+            --resource-group MyResourceGroup \
+            --name MyAppServiceName-Prod \
+            --src $(Build.ArtifactStagingDirectory)/drop/app.zip
+      displayName: 'Deploy to Azure App Service Production'
