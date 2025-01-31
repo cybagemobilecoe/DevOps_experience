@@ -1,11 +1,11 @@
 trigger:
-  - main  # Runs the pipeline when changes are pushed to the 'main' branch
+  - main  # Runs on the main branch
 
 pool:
-  vmImage: 'ubuntu-latest'  # Use an Ubuntu agent
+  vmImage: 'ubuntu-latest'
 
 steps:
-  - checkout: self  # Pulls the latest code from the repo
+  - checkout: self  # Ensures the repo is checked out
 
   - script: |
       #!/bin/bash
@@ -34,16 +34,17 @@ steps:
       git config --global user.name "Azure DevOps Pipeline"
 
       # Ensure we are on the correct branch
-      git branch
       git checkout main || git checkout -b main
 
-      # Add, commit, and push changes using the GitHub PAT
+      # Add, commit, and push changes
       git add "$VERSION_FILE"
       git commit -m "Increment version to ${NEW_VERSION}+"
 
-      # Use GitHub PAT for authentication
-      git remote set-url origin https://$GITHUB_PAT@github.com/cybagemobilecoe/DevOps_experience.git
+      # Set remote URL with GitHub PAT securely
+      git remote set-url origin https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git
+
+      # Push changes
       git push origin main
     displayName: 'Increment Version in Text File'
     env:
-      GITHUB_PAT: $(GITHUB_PAT)  # Pass the secret token correctly
+      GITHUB_PAT: $(GITHUB_PAT)  # Ensure it's passed as an environment variable
