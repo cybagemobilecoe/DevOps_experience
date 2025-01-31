@@ -4,9 +4,6 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'  # Using Ubuntu as the build agent
 
-variables:
-  GITHUB_PAT: $(GITHUB_PAT)  # Reference the PAT stored in Azure DevOps secrets
-
 steps:
   - checkout: self  # Pull the latest code from the repository
 
@@ -36,13 +33,15 @@ steps:
       git config --global user.name "Azure DevOps Pipeline"
 
       # Ensure we're on the correct branch (e.g., main or master)
-      git checkout $(git rev-parse --abbrev-ref HEAD) || git checkout -b main
+      git checkout main || git checkout -b main
 
       # Commit changes
       git add "$VERSION_FILE"
       git commit -m "Increment version to ${NEW_VERSION}+"
 
       # Push changes using the PAT stored in Azure DevOps secrets
-      git push https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git
+      git push https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git main
     displayName: 'Increment Version in Text File'
     failOnStderr: true  # Fail the task if there's an error in the script
+    env:
+      GITHUB_PAT: $(GITHUB_PAT)  # Reference the PAT stored in Azure DevOps secrets
