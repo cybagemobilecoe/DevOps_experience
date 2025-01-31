@@ -46,7 +46,8 @@ stages:
 
         # Extract the 30th character
         char_30=${first_line:30:1}
-        echo "value of char 30 ${char_30}"
+        echo "value of char 30 ${char_30}" 
+        echo "type of char ${type(char_30)}" 
 
         # Convert the character to a number
         if ! [[ $char_30 =~ ^[0-9]+$ ]]; then
