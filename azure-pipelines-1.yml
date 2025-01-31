@@ -1,5 +1,5 @@
 trigger:
-  - main  # Runs on the main branch
+  - main  # Runs when changes are pushed to the main branch
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -11,18 +11,15 @@ steps:
       #!/bin/bash
       set -e  # Exit on error
 
-      # Define file path
       VERSION_FILE="version.txt"
 
-      # Ensure the version file exists
+      # Ensure the file exists
       if [ ! -f "$VERSION_FILE" ]; then
         echo "4+" > "$VERSION_FILE"
       fi
 
-      # Read version from file
+      # Read and increment version
       VERSION=$(cat "$VERSION_FILE")
-
-      # Extract number, increment it
       NUMERIC_VERSION=$(echo "$VERSION" | grep -o '[0-9]\+')
       NEW_VERSION=$((NUMERIC_VERSION + 1))
 
@@ -34,17 +31,17 @@ steps:
       git config --global user.name "Azure DevOps Pipeline"
 
       # Ensure we are on the correct branch
-      git fetch origin main || true
+      git fetch origin main
       git checkout main || git checkout -b main
 
       # Add, commit, and push changes
       git add "$VERSION_FILE"
       git commit -m "Increment version to ${NEW_VERSION}+"
 
-      # Set remote URL with GitHub PAT securely
+      # ✅ Fix: Correctly reference GitHub PAT
       git remote set-url origin https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git
 
-      # Push changes (force authentication)
+      # ✅ Fix: Push changes with authentication
       git push origin main
     displayName: 'Increment Version in Text File'
     env:
