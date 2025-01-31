@@ -34,6 +34,7 @@ steps:
       git config --global user.name "Azure DevOps Pipeline"
 
       # Ensure we are on the correct branch
+      git fetch origin main || true
       git checkout main || git checkout -b main
 
       # Add, commit, and push changes
@@ -43,8 +44,8 @@ steps:
       # Set remote URL with GitHub PAT securely
       git remote set-url origin https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git
 
-      # Push changes
+      # Push changes (force authentication)
       git push origin main
     displayName: 'Increment Version in Text File'
     env:
-      GITHUB_PAT: $(GITHUB_PAT)  # Ensure it's passed as an environment variable
+      GITHUB_PAT: $(GITHUB_PAT)  # Pass GitHub PAT as an environment variable
