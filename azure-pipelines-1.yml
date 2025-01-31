@@ -9,7 +9,7 @@ stages:
   displayName: "Update File in Repo"
   jobs:
   - job: UpdateChar
-    displayName: "Update 31st Character in experience.txt"
+    displayName: "Update Experience Level in experience.txt"
     steps:
     - checkout: self
       persistCredentials: true  # Ensures Git authentication works
@@ -31,8 +31,12 @@ stages:
         # Read the file content
         content=$(cat "$filePath")
 
-        # Find and update experience numbers (e.g., 4+ to 5+, 5+ to 6+)
-        updated_content=$(echo "$content" | sed -E 's/([0-9]+)\+/\((\1+1)\)+/g')
+        # Print original content for debugging
+        echo "Original content:"
+        echo "$content"
+
+        # Use a regular expression to find and increment experience levels
+        updated_content=$(echo "$content" | sed -E 's/([0-9]+)\+/echo $((${BASH_REMATCH[1]}+1))+/ge')
 
         # If there was any change, update the file
         if [ "$content" != "$updated_content" ]; then
@@ -43,7 +47,8 @@ stages:
         fi
 
         # Display updated content
-        echo "Updated file content:" && cat "$filePath"
+        echo "Updated file content:"
+        echo "$updated_content"
       displayName: "Process File"
 
     - script: |
