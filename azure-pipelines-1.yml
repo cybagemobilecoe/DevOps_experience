@@ -22,27 +22,3 @@ steps:
       VERSION=$(cat "$VERSION_FILE")
       NUMERIC_VERSION=$(echo "$VERSION" | grep -o '[0-9]\+')
       NEW_VERSION=$((NUMERIC_VERSION + 1))
-
-      # Update the file
-      echo "${NEW_VERSION}+" > "$VERSION_FILE"
-
-      # Configure Git
-      git config --global user.email "your-email@example.com"
-      git config --global user.name "Azure DevOps Pipeline"
-
-      # Ensure we are on the correct branch
-      git fetch origin main
-      git checkout main || git checkout -b main
-
-      # Add, commit, and push changes
-      git add "$VERSION_FILE"
-      git commit -m "Increment version to ${NEW_VERSION}+"
-
-      # ✅ Fix: Correctly reference GitHub PAT
-      git remote set-url origin https://$(GITHUB_PAT)@github.com/cybagemobilecoe/DevOps_experience.git
-
-      # ✅ Fix: Push changes with authentication
-      git push origin main
-    displayName: 'Increment Version in Text File'
-    env:
-      GITHUB_PAT: $(GITHUB_PAT)  # Pass GitHub PAT as an environment variable
